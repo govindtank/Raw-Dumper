@@ -19,10 +19,13 @@ package com.fkeglevich.rawdumper.camera.async.pipeline.picture;
 import android.hardware.Camera;
 import android.support.annotation.NonNull;
 
+import com.fkeglevich.rawdumper.async.operation.AsyncOperation;
 import com.fkeglevich.rawdumper.camera.action.listener.PictureExceptionListener;
 import com.fkeglevich.rawdumper.camera.action.listener.PictureListener;
+import com.fkeglevich.rawdumper.camera.async.pipeline.recovering.ParametersSaver;
 import com.fkeglevich.rawdumper.camera.extension.ICameraExtension;
 import com.fkeglevich.rawdumper.util.Mutable;
+import com.fkeglevich.rawdumper.util.exception.MessageException;
 
 /**
  * TODO: Add class header
@@ -34,15 +37,46 @@ public abstract class PicturePipelineBase implements PicturePipeline
 {
     private final Mutable<ICameraExtension> cameraExtension;
     private final Object lock;
+    private final boolean shouldSaveParameters;
 
-    PicturePipelineBase(Mutable<ICameraExtension> cameraExtension, Object lock)
+    PicturePipelineBase(Mutable<ICameraExtension> cameraExtension, Object lock, boolean shouldSaveParameters)
     {
         this.cameraExtension = cameraExtension;
         this.lock = lock;
+        this.shouldSaveParameters = shouldSaveParameters;
     }
 
     @Override
     public void takePicture(PictureListener pictureCallback, PictureExceptionListener exceptionCallback)
+    {
+        if (shouldSaveParameters)
+        {
+            String parameters;
+            synchronized (lock)
+            {
+                parameters = cameraExtension.get().getCameraDevice().getParameters().flatten();
+            }
+            ParametersSaver.saveParametersAsync(parameters, new AsyncOperation<Void>()
+            {
+                @Override
+                protected void execute(Void argument)
+                {
+                    takePictureImpl(pictureCallback, exceptionCallback);
+                }
+            }, new AsyncOperation<MessageException>()
+            {
+                @Override
+                protected void execute(MessageException argument)
+                {
+                    exceptionCallback.onException(argument);
+                }
+            });
+        }
+        else
+            takePictureImpl(pictureCallback, exceptionCallback);
+    }
+
+    private void takePictureImpl(PictureListener pictureCallback, PictureExceptionListener exceptionCallback)
     {
         synchronized (lock)
         {
@@ -65,23 +99,6 @@ public abstract class PicturePipelineBase implements PicturePipeline
         return (data, camera) ->
         {
             pipelineData.jpegData = data;
-            synchronized (lock)
-            {
-                processPipeline(pipelineData, pictureCallback, exceptionCallback);
-            }
-        };
-    }
-
-    private Camera.PictureCallback createJpegCB(final PipelineData pipelineData)
-    {
-        return (data, camera) -> pipelineData.jpegData = data;
-    }
-
-    @NonNull
-    private Camera.PictureCallback createPostViewCB(final PictureListener pictureCallback, final PictureExceptionListener exceptionCallback, final PipelineData pipelineData)
-    {
-        return (data, camera) ->
-        {
             synchronized (lock)
             {
                 processPipeline(pipelineData, pictureCallback, exceptionCallback);

@@ -43,7 +43,7 @@ abstract class StandardPipeline extends PicturePipelineBase
 
     StandardPipeline(Mutable<ICameraExtension> cameraExtension, Object lock, FileFormat fileFormat)
     {
-        super(cameraExtension, lock);
+        super(cameraExtension, lock, false);
         this.filenameBuilder    = new FilenameBuilder().isPicture().useFileFormat(fileFormat);
         this.uiHandler          = new Handler(Looper.getMainLooper());
     }

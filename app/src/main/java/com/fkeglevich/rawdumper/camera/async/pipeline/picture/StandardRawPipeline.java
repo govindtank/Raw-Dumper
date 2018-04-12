@@ -53,7 +53,7 @@ public class StandardRawPipeline extends PicturePipelineBase
 
     StandardRawPipeline(Mutable<ICameraExtension> cameraExtension, Object lock, CameraContext cameraContext, byte[] buffer)
     {
-        super(cameraExtension, lock);
+        super(cameraExtension, lock, true);
         this.cameraContext = cameraContext;
         this.buffer = buffer;
         this.uiHandler = new Handler(Looper.getMainLooper());

@@ -25,6 +25,7 @@ import com.fkeglevich.rawdumper.camera.async.CameraContext;
 import com.fkeglevich.rawdumper.camera.async.CameraThread;
 import com.fkeglevich.rawdumper.camera.async.direct.RestartableCamera;
 import com.fkeglevich.rawdumper.camera.async.pipeline.picture.dummy.RetryingPipelineSimulator;
+import com.fkeglevich.rawdumper.camera.async.pipeline.recovering.ParametersSaver;
 import com.fkeglevich.rawdumper.camera.extension.ICameraExtension;
 import com.fkeglevich.rawdumper.debug.DebugFlag;
 import com.fkeglevich.rawdumper.io.Directories;
@@ -86,11 +87,33 @@ public class RetryingRawPipeline implements PicturePipeline
     {
         synchronized (lock)
         {
+            parameters = cameraExtension.get().getCameraDevice().getParameters();
+        }
+        ParametersSaver.saveParametersAsync(parameters.flatten(), new AsyncOperation<Void>()
+        {
+            @Override
+            protected void execute(Void argument)
+            {
+                takePictureImpl(pictureCallback, exceptionCallback);
+            }
+        }, new AsyncOperation<MessageException>()
+        {
+            @Override
+            protected void execute(MessageException argument)
+            {
+                exceptionCallback.onException(argument);
+            }
+        });
+    }
+
+    private void takePictureImpl(PictureListener pictureCallback, PictureExceptionListener exceptionCallback)
+    {
+        synchronized (lock)
+        {
             nextPictureCallback = pictureCallback;
             nextExceptionCallback = exceptionCallback;
             ignoreError = true;
             Camera camera = cameraExtension.get().getCameraDevice();
-            parameters = camera.getParameters();
 
             if (DebugFlag.usingRetryPipelineSimulator())
                 RetryingPipelineSimulator.simulate(cameraContext, errorCallback);
