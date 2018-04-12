@@ -16,6 +16,7 @@
 
 package com.fkeglevich.rawdumper.camera.async.pipeline.picture;
 
+import android.graphics.Bitmap;
 import android.hardware.Camera;
 
 import com.fkeglevich.rawdumper.camera.action.listener.PictureExceptionListener;
@@ -24,6 +25,12 @@ import com.fkeglevich.rawdumper.camera.data.FileFormat;
 import com.fkeglevich.rawdumper.camera.extension.ICameraExtension;
 import com.fkeglevich.rawdumper.camera.extension.RawImageCallbackAccess;
 import com.fkeglevich.rawdumper.util.Mutable;
+
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 /**
  * TODO: Add class header
@@ -36,6 +43,8 @@ public class YuvPipeline extends StandardPipeline
     private final FileFormat fileFormat;
     private final byte[] buffer;
 
+    private Camera.Parameters parameters = null;
+
     public YuvPipeline(Mutable<ICameraExtension> cameraExtension, Object lock, FileFormat fileFormat, byte[] buffer)
     {
         super(cameraExtension, lock, fileFormat);
@@ -47,12 +56,31 @@ public class YuvPipeline extends StandardPipeline
     protected void setupCameraBefore(Camera camera)
     {
         super.setupCameraBefore(camera);
+        parameters = camera.getParameters();
         RawImageCallbackAccess.addRawImageCallbackBuffer(camera, buffer);
     }
 
     @Override
     void saveImage(PipelineData pipelineData, PictureListener pictureCallback, PictureExceptionListener exceptionCallback, String filename)
     {
+        Camera.Size pictureSize = parameters.getPictureSize();
+
+        //async
+        Bitmap bitmap = Bitmap.createBitmap(new int[2], pictureSize.width, pictureSize.height, Bitmap.Config.ARGB_8888);
+        try(BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(filename))))
+        {
+            bitmap.compress(fileFormat.getCompressFormat(), 100, bos);
+
+        }
+        catch (FileNotFoundException e)
+        {
+            e.printStackTrace();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+
         throw new UnsupportedOperationException();
     }
 }
