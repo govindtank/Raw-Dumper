@@ -71,16 +71,31 @@ public class SensorInfo
         return baseISO;
     }
 
+    public BayerPattern getBayerPattern()
+    {
+        return bayerPattern;
+    }
+
+    public int getWhiteLevel()
+    {
+        return whiteLevel;
+    }
+
+    public float[] getBlackLevel()
+    {
+        return blackLevel;
+    }
+
     public void writeTiffTags(TiffWriter tiffWriter)
     {
         tiffWriter.setField(TiffTag.TIFFTAG_BITSPERSAMPLE,          storageBitsPerPixel);
         tiffWriter.setField(TiffTag.TIFFTAG_CFAREPEATPATTERNDIM,    DEFAULT_CFA_REPEAT_PATTERN_DIM, false);
-        tiffWriter.setField(TiffTag.TIFFTAG_CFAPATTERN,             bayerPattern.getBytePattern(), false);
+        tiffWriter.setField(TiffTag.TIFFTAG_CFAPATTERN,             getBayerPattern().getBytePattern(), false);
         tiffWriter.setField(TiffTag.TIFFTAG_CFAPLANECOLOR,          DEFAULT_CFA_PLANE_COLOR, true);
         tiffWriter.setField(TiffTag.TIFFTAG_CFALAYOUT,              DEFAULT_CFA_LAYOUT);
-        tiffWriter.setField(TiffTag.TIFFTAG_WHITELEVEL,             new long[] { whiteLevel }, true);
+        tiffWriter.setField(TiffTag.TIFFTAG_WHITELEVEL,             new long[] {getWhiteLevel()}, true);
         tiffWriter.setField(TiffTag.TIFFTAG_BLACKLEVELREPEATDIM,    DEFAULT_BLACK_LEVEL_REPEAT_DIM, false);
-        tiffWriter.setField(TiffTag.TIFFTAG_BLACKLEVEL,             blackLevel, true);
+        tiffWriter.setField(TiffTag.TIFFTAG_BLACKLEVEL,             getBlackLevel(), true);
     }
 
     public RawImageSize getRawImageSizeFromSize(Camera.Size size)

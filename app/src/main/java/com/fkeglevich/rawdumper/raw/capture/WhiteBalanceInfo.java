@@ -51,7 +51,7 @@ public class WhiteBalanceInfo
         return createFromXYCoords(xy[0], xy[1], colorInfo);
     }
 
-    private final float[] asShotNeutral;
+    public float[] asShotNeutral;
 
     private WhiteBalanceInfo(float[] asShotNeutral)
     {

@@ -50,8 +50,8 @@ public class ColorInfo
 
     public void writeTiffTags(TiffWriter tiffWriter)
     {
-        safeWriteField(tiffWriter, TiffTag.TIFFTAG_COLORMATRIX1,           colorMatrix1, true);
-        safeWriteField(tiffWriter, TiffTag.TIFFTAG_COLORMATRIX2,           colorMatrix2, true);
+        safeWriteField(tiffWriter, TiffTag.TIFFTAG_COLORMATRIX1,           getColorMatrix1(), true);
+        safeWriteField(tiffWriter, TiffTag.TIFFTAG_COLORMATRIX2,           getColorMatrix2(), true);
         safeWriteField(tiffWriter, TiffTag.TIFFTAG_FORWARDMATRIX1,         forwardMatrix1, true);
         safeWriteField(tiffWriter, TiffTag.TIFFTAG_FORWARDMATRIX2,         forwardMatrix2, true);
         safeWriteField(tiffWriter, TiffTag.TIFFTAG_CAMERACALIBRATION1,     cameraCalibration1, true);
@@ -76,7 +76,7 @@ public class ColorInfo
     {
         double Y = 1;
         double[] xyz = new double[] {(x*Y)/y, Y, ((1-x-y)*Y)/y};
-        double[] dColorMatrix1 = MathUtil.floatArrayToDouble(colorMatrix1);
+        double[] dColorMatrix1 = MathUtil.floatArrayToDouble(getColorMatrix1());
         return MathUtil.multiply3x3MatrixToVector3(dColorMatrix1, xyz);
     }
 
@@ -86,5 +86,15 @@ public class ColorInfo
             return new double[] {0, 0};
 
         return tintTemperatureFunction;
+    }
+
+    public float[] getColorMatrix1()
+    {
+        return colorMatrix1;
+    }
+
+    public float[] getColorMatrix2()
+    {
+        return colorMatrix2;
     }
 }
