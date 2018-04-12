@@ -18,6 +18,7 @@ package com.fkeglevich.rawdumper.dng.opcode;
 
 import com.fkeglevich.rawdumper.dng.DngVersion;
 import com.fkeglevich.rawdumper.raw.data.RawImageSize;
+import com.fkeglevich.rawdumper.raw.gain.GainMap;
 
 import java.nio.ByteBuffer;
 
@@ -35,6 +36,8 @@ public class GainMapOpcode extends Opcode
 {
     private static final int OPCODE_ID = 9;
     private static final int STATIC_PARAMETER_AREA_SIZE = INT_SIZE * 11 + DOUBLE_SIZE * 4;
+
+    private final GainMap gainMap;
 
     private int top;
     private int left;
@@ -58,9 +61,12 @@ public class GainMapOpcode extends Opcode
 
     private int mapPlanes;
 
-    public GainMapOpcode(RawImageSize rawImageSize, int mapPointsV, int mapPointsH)
+    public GainMapOpcode(RawImageSize rawImageSize, GainMap gainMap)
     {
         super(OPCODE_ID, DngVersion.VERSION_1_3_0_0, OPCODE_DEFAULT_FLAGS);
+
+        this.gainMap = gainMap;
+
         top     = 0;
         left    = 0;
         bottom  = rawImageSize.getPaddedHeight();
@@ -69,14 +75,14 @@ public class GainMapOpcode extends Opcode
         plane   = 0;
         planes  = 3;
 
-        rowPitch    = 1;
-        colPitch    = 1;
+        rowPitch = 1;
+        colPitch = 1;
 
-        this.mapPointsV = mapPointsV;
-        this.mapPointsH = mapPointsH;
+        mapPointsV = gainMap.numRows;
+        mapPointsH = gainMap.numColumns;
 
-        mapSpacingV = 1.0 / (this.mapPointsV - 1);
-        mapSpacingH = 1.0 / (this.mapPointsH - 1);
+        mapSpacingV = 1.0 / (mapPointsV - 1);
+        mapSpacingH = 1.0 / (mapPointsH - 1);
 
         mapOriginH  = 0;
         mapOriginV  = 0;
@@ -109,9 +115,14 @@ public class GainMapOpcode extends Opcode
                 .putDouble(mapOriginH)
                 .putInt(mapPlanes);
 
+        int i = 0;
         for (int y = 0; y < mapPointsV; y++)
             for (int x = 0; x < mapPointsH; x ++)
-                for (int p = 0; p < mapPlanes; p++)
-                    buffer.putFloat(((x % 2 == 0) || (y % 2 == 0)) ? 0.2f : 2f);
+            {
+                buffer.putFloat(gainMap.red[i]);
+                buffer.putFloat((gainMap.greenRed[i] + gainMap.greenBlue[i]) / 2f);
+                buffer.putFloat(gainMap.blue[i]);
+                i++;
+            }
     }
 }

@@ -18,6 +18,8 @@ package com.fkeglevich.rawdumper.raw.mkn;
 
 import com.fkeglevich.rawdumper.camera.data.Iso;
 import com.fkeglevich.rawdumper.camera.data.ShutterSpeed;
+import com.fkeglevich.rawdumper.raw.color.ColorTemperature;
+import com.fkeglevich.rawdumper.raw.mkn.illuminant.IlluminantEstimation;
 
 /**
  * Created by flavio on 24/03/18.
@@ -28,13 +30,13 @@ public class MakerNoteInfo
     public final byte[] originalMakerNote;
 
     //Exposure
-    public Iso iso                      = null;
-    public ShutterSpeed exposureTime    = null;
+    public Iso iso                                   = null;
+    public ShutterSpeed exposureTime                 = null;
 
     //White Balance and color
-    public Double temperature           = null;
-    public Double tint                  = null;
-    public float[] colorMatrix          = null;
+    public float[] colorMatrix                       = null;
+    public ColorTemperature temperature              = null;
+    public IlluminantEstimation illuminantEstimation = null;
 
     public MakerNoteInfo(byte[] makerNote)
     {

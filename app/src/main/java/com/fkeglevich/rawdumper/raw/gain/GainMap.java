@@ -18,46 +18,39 @@ package com.fkeglevich.rawdumper.raw.gain;
 
 import junit.framework.Assert;
 
-/**
- * Created by flavio on 24/03/18.
- */
-
 public class GainMap
 {
     public final int numColumns;
     public final int numRows;
 
-    public final float[][] values;
+    public final float[] red;
+    public final float[] greenRed;
+    public final float[] greenBlue;
+    public final float[] blue;
 
     public GainMap(int numColumns, int numRows)
     {
         this.numColumns = numColumns;
         this.numRows = numRows;
-        this.values = new float[numRows][numColumns];
+
+        this.red       = new float[numRows * numColumns];
+        this.greenRed  = new float[numRows * numColumns];
+        this.greenBlue = new float[numRows * numColumns];
+        this.blue      = new float[numRows * numColumns];
     }
 
-    public GainMap add(GainMap b)
+    public void addAndMultiply(GainMap map, float scalar)
     {
-        Assert.assertEquals(numColumns, b.numColumns);
-        Assert.assertEquals(numRows,    b.numRows);
+        Assert.assertEquals(numColumns, map.numColumns);
+        Assert.assertEquals(numRows,    map.numRows);
 
-        GainMap result = new GainMap(numColumns, numRows);
-
-        for (int row = 0; row < numRows; row++)
-            for (int col = 0; col < numColumns; col++)
-                result.values[row][col] = values[row][col] + b.values[row][col];
-
-        return result;
-    }
-
-    public GainMap divideByScalar(float value)
-    {
-        GainMap result = new GainMap(numColumns, numRows);
-
-        for (int row = 0; row < numRows; row++)
-            for (int col = 0; col < numColumns; col++)
-                result.values[row][col] = values[row][col] / value;
-
-        return result;
+        int size = numRows * numColumns;
+        for (int i = 0; i < size; i++)
+        {
+            red[i]       += map.red[i]       * scalar;
+            greenRed[i]  += map.greenRed[i]  * scalar;
+            greenBlue[i] += map.greenBlue[i] * scalar;
+            blue[i]      += map.blue[i]      * scalar;
+        }
     }
 }

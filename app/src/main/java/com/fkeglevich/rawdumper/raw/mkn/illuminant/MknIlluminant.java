@@ -14,34 +14,46 @@
  * limitations under the License.
  */
 
-package com.fkeglevich.rawdumper.raw.gain;
+package com.fkeglevich.rawdumper.raw.mkn.illuminant;
 
 import com.fkeglevich.rawdumper.raw.data.CalibrationIlluminant;
 
 /**
- * Created by flavio on 24/03/18.
+ * Created by flavio on 02/04/18.
  */
 
-public enum ShadingIlluminant
+public enum MknIlluminant
 {
     A   ( 0, "A",    CalibrationIlluminant.STANDARD_LIGHT_A),
     CW  ( 1, "CW",   CalibrationIlluminant.COOL_WHITE_FLUORESCENT),
     TL84( 2, "TL84", CalibrationIlluminant.FLUORESCENT),
     D50 ( 3, "D50",  CalibrationIlluminant.D50),
     D65 ( 4, "D65",  CalibrationIlluminant.D65),
-    H   ( 5, "H",    CalibrationIlluminant.TUNGSTEN),
-    U30 (-1, "U30",  CalibrationIlluminant.OTHER_LIGHT_SOURCE),
-    Cali(-1, "Cali", CalibrationIlluminant.UNKNOWN);
+    H   ( 5, "H",    CalibrationIlluminant.TUNGSTEN);
 
     private final int mknIndex;
     private final String token;
     private final CalibrationIlluminant illuminant;
 
-    ShadingIlluminant(int mknIndex, String token, CalibrationIlluminant illuminant)
+    MknIlluminant(int mknIndex, String token, CalibrationIlluminant illuminant)
     {
         this.mknIndex = mknIndex;
         this.token = token;
         this.illuminant = illuminant;
     }
 
+    public int getMknIndex()
+    {
+        return mknIndex;
+    }
+
+    public String getToken()
+    {
+        return token;
+    }
+
+    public CalibrationIlluminant getCalibrationIlluminant()
+    {
+        return illuminant;
+    }
 }
