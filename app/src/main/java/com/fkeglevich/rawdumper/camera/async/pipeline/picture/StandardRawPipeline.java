@@ -19,11 +19,13 @@ package com.fkeglevich.rawdumper.camera.async.pipeline.picture;
 import android.hardware.Camera;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import com.fkeglevich.rawdumper.async.operation.AsyncOperation;
 import com.fkeglevich.rawdumper.camera.action.listener.PictureExceptionListener;
 import com.fkeglevich.rawdumper.camera.action.listener.PictureListener;
 import com.fkeglevich.rawdumper.camera.async.CameraContext;
+import com.fkeglevich.rawdumper.camera.async.pipeline.recovering.ParametersSaver;
 import com.fkeglevich.rawdumper.camera.extension.ICameraExtension;
 import com.fkeglevich.rawdumper.camera.extension.RawImageCallbackAccess;
 import com.fkeglevich.rawdumper.debug.DebugFlag;
@@ -33,6 +35,7 @@ import com.fkeglevich.rawdumper.raw.capture.builder.ACaptureInfoBuilder;
 import com.fkeglevich.rawdumper.raw.capture.builder.FromRawAndJpegBuilder;
 import com.fkeglevich.rawdumper.su.ShellManager;
 import com.fkeglevich.rawdumper.util.Mutable;
+import com.fkeglevich.rawdumper.util.ThreadUtil;
 import com.fkeglevich.rawdumper.util.exception.MessageException;
 
 import eu.chainfire.libsuperuser.Shell;
@@ -50,6 +53,7 @@ public class StandardRawPipeline extends PicturePipelineBase
     private final Handler uiHandler;
 
     private Camera.Parameters parameters = null;
+    private long pictureTakenTime;
 
     StandardRawPipeline(Mutable<ICameraExtension> cameraExtension, Object lock, CameraContext cameraContext, byte[] buffer)
     {
@@ -71,6 +75,7 @@ public class StandardRawPipeline extends PicturePipelineBase
     protected void processPipeline(PipelineData pipelineData, final PictureListener pictureCallback, final PictureExceptionListener exceptionCallback)
     {
         startPreview();
+        pictureTakenTime = System.nanoTime();
         saveDngPicture(pipelineData, pictureCallback, exceptionCallback);
         postOnPictureTaken(pictureCallback);
     }
@@ -121,11 +126,16 @@ public class StandardRawPipeline extends PicturePipelineBase
 
     private void postOnPictureTaken(final PictureListener pictureCallback)
     {
-        uiHandler.post(() -> pictureCallback.onPictureTaken());
+        uiHandler.post(pictureCallback::onPictureTaken);
     }
 
     private void postOnPictureSaved(final PictureListener pictureCallback)
     {
-        uiHandler.postDelayed(() -> pictureCallback.onPictureSaved(), 120);
+        long lastDelay = System.nanoTime() - pictureTakenTime;
+        double lastDelayMilis = lastDelay / 1000000.0;
+        int neededDelay = (int)(350 - lastDelayMilis);
+        Log.i("ASD", "de: " + neededDelay);
+        uiHandler.postDelayed(pictureCallback::onPictureSaved, neededDelay > 0 ? neededDelay : 0);
+        //uiHandler.post(pictureCallback::onPictureSaved);
     }
 }
